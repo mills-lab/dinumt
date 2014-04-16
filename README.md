@@ -8,25 +8,25 @@ This software is designed to identify and genotype nuclear insertions of mitocho
 Required third-party resources 
 ------------------------------
 A number of third party software packages are required by these programs:
-* samtools:  http://samtools.sourceforge.net/
-* exonerate:  http://www.ebi.ac.uk/~guy/exonerate/
-* vcftools:  http://vcftools.sourceforge.net/
+- samtools:  http://samtools.sourceforge.net/
+- exonerate:  http://www.ebi.ac.uk/~guy/exonerate/
+- vcftools:  http://vcftools.sourceforge.net/
 
 In addition, you will need:
-* reference genome in fasta format (e.g. hs37d5.fasta)
-* individual MT sequence (e.g. MT.fa or chrM.fa)
+- reference genome in fasta format (e.g. hs37d5.fasta)
+- individual MT sequence (e.g. MT.fa or chrM.fa)
 
 The genotyping step requires the use of a sample index file containing various sample-level information (mean insert size, coverage, etc). A template has been provided, and the relevant data can be obtained by using GATK (DepthOfCoverage walker) and Picard (CollectInsertSizeMetrics) or custom scripts.
 
 Parameters
 ----------
 Additional information about various parameters below:
-* --len_cluster_include : width of window to consider anchor reads as part of the same cluster, typically calculated as mean_insert_size + 3 * standard_deviation
-* --len_cluster_link    : width of window to link two clusters of anchor reads in proper orientation, typically calculated as 2 * len_cluster_include
-* --max_read_cov        : maximum read depth at potential breakpoint location, used to filter out noisy regions of the genome, typically calculated as 5 * mean_coverage
-* --output_support      : output all sequence reads supporting an insertion event in SAM format to filename in --support_filename option
-* --mask_filename       : bed file of all numts annotated in reference sequence, one is provided for GRCh37 but additional versions can be obtained from UCSC Genome Browser
-* --min_map_qual        : mininum mapping quality required for anchor read to be considered for cluster support, default is 10 but can be adjusted as needed
+- --len_cluster_include : width of window to consider anchor reads as part of the same cluster, typically calculated as mean_insert_size + 3 * standard_deviation
+- --len_cluster_link    : width of window to link two clusters of anchor reads in proper orientation, typically calculated as 2 * len_cluster_include
+- --max_read_cov        : maximum read depth at potential breakpoint location, used to filter out noisy regions of the genome, typically calculated as 5 * mean_coverage
+- --output_support      : output all sequence reads supporting an insertion event in SAM format to filename in --support_filename option
+- --mask_filename       : bed file of all numts annotated in reference sequence, one is provided for GRCh37 but additional versions can be obtained from UCSC Genome Browser
+- --min_map_qual        : mininum mapping quality required for anchor read to be considered for cluster support, default is 10 but can be adjusted as needed
 
 Example workflow
 ----------------
