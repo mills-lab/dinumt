@@ -1,0 +1,10 @@
+sample	pop	filename	median_insert_size	median_absolute_deviation	min_insert_size	max_insert_size	mean_insert_size	standard_deviation	read_pairs	pair_orientation	mean_coverage	granular_third_quartile_coverage	granular_median_coverage	granular_first_quartile_coverage	perc_bases_above_15
+HG00096	GBR	/scratch/data/HG00096/alignment/HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam	182	13	1	242935653	179.814467	22.033335	69840414	FR	4.69	1	1	1	0.3
+HG00097	GBR	/scratch/data/HG00097/alignment/HG00097.mapped.ILLUMINA.bwa.GBR.low_coverage.20130415.bam	298	47	1	236665975	311.391152	78.881308	143438038	FR	9.74	1	1	1	9.2
+HG00099	GBR	/scratch/data/HG00099/alignment/HG00099.mapped.ILLUMINA.bwa.GBR.low_coverage.20130415.bam	272	39	1	242605424	281.291213	65.094938	119283666	FR	8.21	1	1	1	5.5
+HG00100	GBR	/scratch/data/HG00100/alignment/HG00100.mapped.ILLUMINA.bwa.GBR.low_coverage.20130415.bam	401	56	1	242555614	397.279083	85.304412	192131793	FR	13.52	1	1	1	33.2
+HG00101	GBR	/scratch/data/HG00101/alignment/HG00101.mapped.ILLUMINA.bwa.GBR.low_coverage.20130415.bam	355	26	1	242936105	354.052565	42.810666	103896826	FR	7.16	1	1	1	1.6
+HG00102	GBR	/scratch/data/HG00102/alignment/HG00102.mapped.ILLUMINA.bwa.GBR.low_coverage.20130415.bam	348	24	1	245095606	345.448138	42.816054	101742959	FR	7.04	1	1	1	1.5
+HG00103	GBR	/scratch/data/HG00103/alignment/HG00103.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam	171	14	1	236807482	169.641	22.076763	76995432	FR	5.15	1	1	1	0.5
+HG00105	GBR	/scratch/data/HG00105/alignment/HG00105.mapped.ILLUMINA.bwa.GBR.low_coverage.20130415.bam	352	23	1	242894070	343.991933	53.387586	106239655	FR	7.25	1	1	1	1.7
+HG00106	GBR	/scratch/data/HG00106/alignment/HG00106.mapped.ILLUMINA.bwa.GBR.low_coverage.20121211.bam	366	31	1	242551118	361.498437	58.568002	109688999	FR	7.70	1	1	1	2.4

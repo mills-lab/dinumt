@@ -19,6 +19,7 @@ In addition, you will need:
 
 * reference genome in fasta format (e.g. hs37d5.fasta)
 * individual MT sequence (e.g. MT.fa or chrM.fa)
+* bed file of annotated numts in reference (refNumts.bed for hg19 is included in package)
 
 The genotyping step requires the use of a sample index file containing various sample-level information (mean insert size, coverage, etc). A template has been provided, and the relevant data can be obtained by using GATK (DepthOfCoverage walker) and Picard (CollectInsertSizeMetrics) or custom scripts.
 
@@ -40,14 +41,14 @@ An example workflow would be as follows:
 
 (can be done in parallel)
 
-`dinumt-0.0.22.pl --mask_filename=refNumnts.bed --input_filename=sample1.bam --min_reads_cluster=1 --include_mask --output_filename=sample1.vcf --prefix=sample1 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample1_support.sam`
+`dinumt-0.0.22.pl --mask_filename=refNumts.bed --input_filename=sample1.bam --min_reads_cluster=1 --include_mask --output_filename=sample1.vcf --prefix=sample1 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample1_support.sam`
 
-`dinumt-0.0.22.pl --mask_filename=refNumnts.bed --input_filename=sample2.bam --min_reads_cluster=1 --include_mask --output_filename=sample2.vcf --prefix=sample2 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample2_support.sam`
+`dinumt-0.0.22.pl --mask_filename=refNumts.bed --input_filename=sample2.bam --min_reads_cluster=1 --include_mask --output_filename=sample2.vcf --prefix=sample2 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample2_support.sam`
 
 .
 .
 
-`dinumt-0.0.22.pl --mask_filename=refNumnts.bed --input_filename=sampleN.bam --min_reads_cluster=1 --include_mask --output_filename=sampleN.vcf --prefix=sampleN --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sampleN_support.sam --reference=hs37d5.fa`
+`dinumt-0.0.22.pl --mask_filename=refNumts.bed --input_filename=sampleN.bam --min_reads_cluster=1 --include_mask --output_filename=sampleN.vcf --prefix=sampleN --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sampleN_support.sam --reference=hs37d5.fa`
 
 (end parallel)
 
