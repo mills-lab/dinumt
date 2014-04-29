@@ -4,9 +4,12 @@ use warnings;
 use strict;
 use Getopt::Long;
 
-my $version = "0.0.22";
+my $version = "0.0.23";
 
 # version update
+# 0.0.23
+#   -added option to require a minimum level of evidence for sample level genotyping
+#
 # 0.0.22
 #   -updated version to be consistent with dinumt package
 #
@@ -72,7 +75,7 @@ $opts{min_clipped_seq}     = 5;
 $opts{clipped_flank}       = 50;
 $opts{max_num_clipped}     = 5;
 $opts{include_mask}        = 0;
-$opts{min_evidence}        = 4;
+$opts{min_evidence}        = 2;
 $opts{min_map_qual}        = 10;
 $opts{filter_qual}         = 13;
 $opts{filter_depth}        = 5;
@@ -270,12 +273,17 @@ sub scoreData {
             foreach my $sample ( keys %{$sample_hash} ) {
 
                 print "\tSample: $sample\n" if $opts{verbose};
+                
+                #zero out alternative supporting evidence if below threshold
+                if ($$data_hash{$var}{$sample}{numAltRP} + $$data_hash{$var}{$sample}{numAltSR} < $opts{min_evidence}) {
+                    $$data_hash{$var}{$sample}{numAltRP} = 0;
+                    $$data_hash{$var}{$sample}{numAltSR} = 0;
+                }
                 my $numRefRP = $$data_hash{$var}{$sample}{numRefRP};
                 my $numAltRP = $$data_hash{$var}{$sample}{numAltRP};
                 my $numRefSR = $$data_hash{$var}{$sample}{numRefSR};
                 my $numAltSR = $$data_hash{$var}{$sample}{numAltSR};
 
-                warn "$numAltRP\t$numRefRP\t$numAltSR\t$numRefSR\n" if $sample eq "HGDP00715";
                 foreach my $geno ( 0 .. $opts{ploidy} ) {
                     $$data_hash{$var}{$sample}{pl}{$geno}  = 0;
                     $$data_hash{$var}{$sample}{gl}{$geno}  = 0;
@@ -1172,7 +1180,7 @@ sub usage {
     printf( "%-9s %-35s %s\n", "",         "--len_cluster_include=[integer]", "Maximum distance to be included in cluster (default 600)" );
     printf( "%-9s %-35s %s\n", "",         "--len_cluster_link=[integer]",    "Maximum distance to link clusters (default 800)" );
     printf( "%-9s %-35s %s\n", "",         "--min_reads_cluster=[integer]",   "Minimum number of reads to link a cluster (default 1)" );
-    printf( "%-9s %-35s %s\n", "",         "--min_evidence=[integer]",        "Minimum evidence to consider an insertion event (default 4)" );
+    printf( "%-9s %-35s %s\n", "",         "--min_evidence=[integer]",        "Minimum evidence to consider an insertion event for genotyping (default 2)" );
     printf( "%-9s %-35s %s\n", "",         "--min_map_qual=[integer]",        "Minimum mapping quality for read consideration (default 10)" );
     printf( "%-9s %-35s %s\n", "",         "--max_read_cov=[integer]",        "Maximum read coverage allowed for breakpoint searching (default 200)" );
     printf( "%-9s %-35s %s\n", "",         "--min_clipped_seq=[integer]",     "Minimum clipped sequence required to consider as putative breakpoint (default 5)" );
