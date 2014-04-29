@@ -41,14 +41,14 @@ An example workflow would be as follows:
 
 (can be done in parallel)
 
-`dinumt-0.0.22.pl --mask_filename=refNumts.bed --input_filename=sample1.bam --min_reads_cluster=1 --include_mask --output_filename=sample1.vcf --prefix=sample1 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample1_support.sam`
+`dinumt.pl --mask_filename=refNumts.bed --input_filename=sample1.bam --min_reads_cluster=1 --include_mask --output_filename=sample1.vcf --prefix=sample1 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample1_support.sam`
 
-`dinumt-0.0.22.pl --mask_filename=refNumts.bed --input_filename=sample2.bam --min_reads_cluster=1 --include_mask --output_filename=sample2.vcf --prefix=sample2 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample2_support.sam`
+`dinumt.pl --mask_filename=refNumts.bed --input_filename=sample2.bam --min_reads_cluster=1 --include_mask --output_filename=sample2.vcf --prefix=sample2 --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sample2_support.sam`
 
 .
 .
 
-`dinumt-0.0.22.pl --mask_filename=refNumts.bed --input_filename=sampleN.bam --min_reads_cluster=1 --include_mask --output_filename=sampleN.vcf --prefix=sampleN --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sampleN_support.sam --reference=hs37d5.fa`
+`dinumt.pl --mask_filename=refNumts.bed --input_filename=sampleN.bam --min_reads_cluster=1 --include_mask --output_filename=sampleN.vcf --prefix=sampleN --len_cluster_include=577 --len_cluster_link=1154 --insert_size=334.844984 --max_read_cov=29 --output_support --support_filename=sampleN_support.sam --reference=hs37d5.fa`
 
 (end parallel)
 
@@ -60,7 +60,7 @@ An example workflow would be as follows:
 
 (merged vcf can be split into smaller pieces with multiple sets of sites run in parallel, if need be)
 
-`gnomit-0.0.22.pl --input_filename=merged.vcf --mask_filename=refNumts.bed --info_filename=sampleInfo --output_filename=merged_geno.vcf --samtools=samtools --reference=hs37d5.fa --breakpoint --min_map_qual=13 --dir_tmp=/tmp --exonerate=exonerate --mt_filename=MT.fa`
+`gnomit.pl --input_filename=merged.vcf --mask_filename=refNumts.bed --info_filename=sampleInfo --output_filename=merged_geno.vcf --samtools=samtools --reference=hs37d5.fa --breakpoint --min_map_qual=13 --dir_tmp=/tmp --exonerate=exonerate --mt_filename=MT.fa`
 
 Contact
 -------
