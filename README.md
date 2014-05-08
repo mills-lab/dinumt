@@ -14,7 +14,7 @@ A number of third party software packages are required by these programs:
 * samtools:  http://samtools.sourceforge.net/
 * exonerate:  http://www.ebi.ac.uk/~guy/exonerate/
 * vcftools:  http://vcftools.sourceforge.net/
-  - you will need to make sure Vcf.pm is in your perl library path
+    - you will need to make sure Vcf.pm is in your perl library path
 
 In addition, you will need:
 
