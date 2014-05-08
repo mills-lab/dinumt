@@ -312,37 +312,22 @@ sub scoreData {
                     $$data_hash{$var}{$sample}{gl}{$geno} = log10( $priors{$geno} ) + $$data_hash{$var}{$sample}{gl0}{$geno};  #adjust with population inferred prior
                 }
 
-                if ( $sample eq "HGDP00715" ) {
-                    foreach my $g ( 0 .. $opts{ploidy} ) {
-                        my $geno = $opts{ploidy} - $g;
-                        warn "gl w/prior ($geno): $$data_hash{$var}{$sample}{gl}{$geno}\n";
-                    }
-                }
                 my @sortedGeno = sort { $$data_hash{$var}{$sample}{gl}{$b} <=> $$data_hash{$var}{$sample}{gl}{$a} } keys %{ $$data_hash{$var}{$sample}{gl} };
-                if ( $sample eq "HGDP00715" ) {
-                    foreach my $geno (@sortedGeno) {
-                        print "sortedGeno\t$geno\t$sortedGeno[$geno]\n";
-                    }
-                }
-
                 #calculate PL from GL
                 foreach my $geno ( 0 .. $opts{ploidy} ) {
                     print "\tcalculating pl from geno ($$data_hash{$var}{$sample}{gl}{$geno})\n" if $opts{verbose};
                     $$data_hash{$var}{$sample}{pl}{$geno} = int( -10 * $$data_hash{$var}{$sample}{gl}{$geno} );
                     if ( $$data_hash{$var}{$sample}{pl}{$geno} > 255 ) { $$data_hash{$var}{$sample}{pl}{$geno} = 255; }
-                    warn "pl ($geno): $$data_hash{$var}{$sample}{pl}{$geno}\n" if $sample eq "HGDP00715";
                     print "\t...$$data_hash{$var}{$sample}{pl}{$geno}\n" if $opts{verbose};
                 }
 
                 #normalize PL to most likely genotype
                 foreach my $geno ( 0 .. $opts{ploidy} ) {
                     $$data_hash{$var}{$sample}{pl}{$geno} -= $$data_hash{$var}{$sample}{pl}{ $sortedGeno[0] };
-                    warn "pl-norm ($geno): $$data_hash{$var}{$sample}{pl}{$geno}\n" if $sample eq "HGDP00715";
                 }
 
                 #determine genotype quality
                 $$data_hash{$var}{$sample}{gq} = int( 10 * ( $$data_hash{$var}{$sample}{gl}{ $sortedGeno[0] } - $$data_hash{$var}{$sample}{gl}{ $sortedGeno[1] } ) );
-                warn "gq: $$data_hash{$var}{$sample}{gq}\n" if $sample eq "HGDP00715";
                 print "\t...$$data_hash{$var}{$sample}{gq}\n" if $opts{verbose};
 
                 my $gt = "0/0";
@@ -352,7 +337,6 @@ sub scoreData {
                 if   ( $numAltRP + $numRefRP + $numAltSR + $numRefSR < $opts{filter_depth} || $$data_hash{$var}{$sample}{gq} < $opts{filter_qual} ) { $$data_hash{$var}{$sample}{ft} = "LowQual"; }
                 else                                                                                                                                { $$data_hash{$var}{$sample}{ft} = "PASS"; }
 
-                warn "\tfilter: $$data_hash{$var}{$sample}{ft}\n" if $sample eq "HGDP00715";
                 $genoFreq{ $sortedGeno[0] }{new}++;
                 $sumGenoFreq++;
             }
@@ -865,8 +849,6 @@ sub refineData {
                 my ( $m_cFlag, $m_cPos, $m_clipside, $m_clipsize, $m_seqLen, $m_matchLen, $m_seq ) = getMateInfo( $qname, $rname, $pnext, $$sample_hash{$sample}{read_groups}, $$sample_hash{$sample}{filename} );
 
                 if ( $cFlag == 1 && ( abs( $cPos - $$infile_hash{$var}{leftBkpt} ) <= $opts{min_clipped_seq} || abs( $cPos - $$infile_hash{$var}{rightBkpt} ) <= $opts{min_clipped_seq} ) ) {
-                    warn "A\t$qname\n" if $sample eq "HGDP00715";
-
                     $$data_hash{$var}{$sample}{numAltSR}++;
                     push @{ $$data_hash{$var}{$sample}{qualAltSR} }, $mapE;
                 }
@@ -874,7 +856,6 @@ sub refineData {
 
                     #non-clipped reads with slight overlap with breakpoint may have mismatches instead of clipping, so skip
                     #also require at least 95% of read be 'matched' to reference, as the presence of insertion can cause some wacky mappings
-                    warn "B\t$qname\n" if $sample eq "HGDP00715";
                     $$data_hash{$var}{$sample}{numRefSR}++;
                     push @{ $$data_hash{$var}{$sample}{qualRefSR} }, $mapE;
                 }
@@ -886,14 +867,14 @@ sub refineData {
                 }
                 elsif ( $dir == 0 && $dnext == 1 && $rnext eq "=" && !$found{$qname} ) {
                     $found{$qname} = 1;
-                    if ( abs($tlen) > $$sample_hash{$sample}{median_insert_size} + 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; warn "1\t$qname\n" if $sample eq "HGDP00715"; }    #insert length of potential reference supporting allele out of upper bounds
-                    if ( abs($tlen) < $$sample_hash{$sample}{median_insert_size} - 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; warn "2\t$qname\n" if $sample eq "HGDP00715"; }    #insert length of potential reference supporting allele out of lower bounds
+                    if ( abs($tlen) > $$sample_hash{$sample}{median_insert_size} + 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; }    #insert length of potential reference supporting allele out of upper bounds
+                    if ( abs($tlen) < $$sample_hash{$sample}{median_insert_size} - 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; }    #insert length of potential reference supporting allele out of lower bounds
 
                     #allow some flexibility for clipped positions around breakpoint due to alignment artifacts (later may want to inplement a realignment step)
-                    if    ( $cPos > -1   && abs( $cPos - $l_end ) <= $opts{min_clipped_seq}     && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "3\t$qname\n" if $sample eq "HGDP00715"; }
-                    elsif ( $m_cPos > -1 && abs( $m_cPos - $l_end ) <= $opts{min_clipped_seq}   && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "5\t$qname\n" if $sample eq "HGDP00715"; }
-                    elsif ( $cPos > -1   && abs( $cPos - $r_start ) <= $opts{min_clipped_seq}   && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "7\t$qname\n" if $sample eq "HGDP00715"; }
-                    elsif ( $m_cPos > -1 && abs( $m_cPos - $r_start ) <= $opts{min_clipped_seq} && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "9\t$qname\n" if $sample eq "HGDP00715"; }
+                    if    ( $cPos > -1   && abs( $cPos - $l_end ) <= $opts{min_clipped_seq}     && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
+                    elsif ( $m_cPos > -1 && abs( $m_cPos - $l_end ) <= $opts{min_clipped_seq}   && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
+                    elsif ( $cPos > -1   && abs( $cPos - $r_start ) <= $opts{min_clipped_seq}   && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
+                    elsif ( $m_cPos > -1 && abs( $m_cPos - $r_start ) <= $opts{min_clipped_seq} && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
                     elsif ( ( $pos <= $l_end && $pnext + $m_seqLen >= $l_end ) || ( $pos <= $r_start && $pnext + $m_seqLen >= $r_start ) ) {
 
                         #non-clipped reads with slight overlap with breakpoint may have mismatches instead of clipping
@@ -908,7 +889,6 @@ sub refineData {
                             && $matchLen >= 0.95 * length($seq)
                             && $m_matchLen >= 0.95 * length($m_seq) )
                         {
-                            warn "11\t$qname\n" if $sample eq "HGDP00715";
                             $data_hash{$var}{$sample}{numRefRP}++;
                             push @{ $$data_hash{$var}{$sample}{qualRefRP} }, $mapE;
                         }
