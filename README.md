@@ -57,7 +57,7 @@ dinumt.pl \
 
 ~~~
 grep ^# sample1.vcf > header.txt
-cat *vcf | grep -v ^# | vcf-sort.pl | clusterNumtsVcf.pl > data.txt
+cat *vcf | grep -v ^# | vcf-sort.pl | clusterNumtsVcf.pl --reference=hs37d5.fa > data.txt
 cat header.txt data.txt > merged.vcf
 ~~~
 
