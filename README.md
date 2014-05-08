@@ -52,7 +52,7 @@ dinumt.pl \
 --insert_size=334.844984 \
 --max_read_cov=29 \
 --output_support \
---support_filename=sample1_support.sam`
+--support_filename=sample1_support.sam
 ~~~
 
 ~~~
