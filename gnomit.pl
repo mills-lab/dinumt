@@ -75,7 +75,7 @@ $opts{min_clipped_seq}     = 5;
 $opts{clipped_flank}       = 50;
 $opts{max_num_clipped}     = 5;
 $opts{include_mask}        = 0;
-$opts{min_evidence}        = 2;
+$opts{min_evidence}        = 3;
 $opts{min_map_qual}        = 10;
 $opts{filter_qual}         = 13;
 $opts{filter_depth}        = 5;
@@ -278,6 +278,8 @@ sub scoreData {
                 if ($$data_hash{$var}{$sample}{numAltRP} + $$data_hash{$var}{$sample}{numAltSR} < $opts{min_evidence}) {
                     $$data_hash{$var}{$sample}{numAltRP} = 0;
                     $$data_hash{$var}{$sample}{numAltSR} = 0;
+                    $$data_hash{$var}{$sample}{qualAltRP} = ();
+                    $$data_hash{$var}{$sample}{qualAltSR} = ();
                 }
                 my $numRefRP = $$data_hash{$var}{$sample}{numRefRP};
                 my $numAltRP = $$data_hash{$var}{$sample}{numAltRP};
@@ -299,50 +301,33 @@ sub scoreData {
                 foreach my $g ( 0 .. $opts{ploidy} ) {
                     my $geno = $opts{ploidy} - $g;    #need to reverse as calculation is reference allele based
                     if ( $numAltRP + $numRefRP > 0 &&  1 / $opts{ploidy} ** ($numAltRP + $numRefRP) > 0) {
-                        print "RP\t$opts{ploidy}, $g, $numAltRP + $numRefRP, $numRefRP, $$data_hash{$var}{$sample}{avgQ}\n" if $sample eq "HGDP00715";
                         $$data_hash{$var}{$sample}{gl0}{$geno} += calcGl( $opts{ploidy}, $g, $numAltRP + $numRefRP, $numRefRP, $$data_hash{$var}{$sample}{qualRefRP}, $$data_hash{$var}{$sample}{qualAltRP} );
                     }
                     if ( $numAltSR + $numRefSR > 0 && $opts{breakpoint} &&  1 / $opts{ploidy} ** ($numAltSR + $numRefSR) > 0) {
-                        print "SR\t$opts{ploidy}, $g, $numAltSR + $numRefSR, $numRefSR, $$data_hash{$var}{$sample}{avgQ}\n" if $sample eq "HGDP00715";
                         $$data_hash{$var}{$sample}{gl0}{$geno} += calcGl( $opts{ploidy}, $g, $numAltSR + $numRefSR, $numRefSR, $$data_hash{$var}{$sample}{qualRefSR}, $$data_hash{$var}{$sample}{qualAltSR} );
                     }
-                    warn "raw gl0 ($geno): $$data_hash{$var}{$sample}{gl0}{$geno}\n" if $sample eq "HGDP00715";
                     print "\tgl0 returned from calcGL() for geno $geno: $$data_hash{$var}{$sample}{gl0}{$geno}\n" if $opts{verbose};
                     if ( $$data_hash{$var}{$sample}{gl0}{$geno} < -255 ) { $$data_hash{$var}{$sample}{gl0}{$geno} = -255; }    #capped
                     $$data_hash{$var}{$sample}{gl}{$geno} = log10( $priors{$geno} ) + $$data_hash{$var}{$sample}{gl0}{$geno};  #adjust with population inferred prior
                 }
 
-                if ( $sample eq "HGDP00715" ) {
-                    foreach my $g ( 0 .. $opts{ploidy} ) {
-                        my $geno = $opts{ploidy} - $g;
-                        warn "gl w/prior ($geno): $$data_hash{$var}{$sample}{gl}{$geno}\n";
-                    }
-                }
                 my @sortedGeno = sort { $$data_hash{$var}{$sample}{gl}{$b} <=> $$data_hash{$var}{$sample}{gl}{$a} } keys %{ $$data_hash{$var}{$sample}{gl} };
-                if ( $sample eq "HGDP00715" ) {
-                    foreach my $geno (@sortedGeno) {
-                        print "sortedGeno\t$geno\t$sortedGeno[$geno]\n";
-                    }
-                }
 
                 #calculate PL from GL
                 foreach my $geno ( 0 .. $opts{ploidy} ) {
                     print "\tcalculating pl from geno ($$data_hash{$var}{$sample}{gl}{$geno})\n" if $opts{verbose};
                     $$data_hash{$var}{$sample}{pl}{$geno} = int( -10 * $$data_hash{$var}{$sample}{gl}{$geno} );
                     if ( $$data_hash{$var}{$sample}{pl}{$geno} > 255 ) { $$data_hash{$var}{$sample}{pl}{$geno} = 255; }
-                    warn "pl ($geno): $$data_hash{$var}{$sample}{pl}{$geno}\n" if $sample eq "HGDP00715";
                     print "\t...$$data_hash{$var}{$sample}{pl}{$geno}\n" if $opts{verbose};
                 }
 
                 #normalize PL to most likely genotype
                 foreach my $geno ( 0 .. $opts{ploidy} ) {
                     $$data_hash{$var}{$sample}{pl}{$geno} -= $$data_hash{$var}{$sample}{pl}{ $sortedGeno[0] };
-                    warn "pl-norm ($geno): $$data_hash{$var}{$sample}{pl}{$geno}\n" if $sample eq "HGDP00715";
                 }
 
                 #determine genotype quality
                 $$data_hash{$var}{$sample}{gq} = int( 10 * ( $$data_hash{$var}{$sample}{gl}{ $sortedGeno[0] } - $$data_hash{$var}{$sample}{gl}{ $sortedGeno[1] } ) );
-                warn "gq: $$data_hash{$var}{$sample}{gq}\n" if $sample eq "HGDP00715";
                 print "\t...$$data_hash{$var}{$sample}{gq}\n" if $opts{verbose};
 
                 my $gt = "0/0";
@@ -352,7 +337,6 @@ sub scoreData {
                 if   ( $numAltRP + $numRefRP + $numAltSR + $numRefSR < $opts{filter_depth} || $$data_hash{$var}{$sample}{gq} < $opts{filter_qual} ) { $$data_hash{$var}{$sample}{ft} = "LowQual"; }
                 else                                                                                                                                { $$data_hash{$var}{$sample}{ft} = "PASS"; }
 
-                warn "\tfilter: $$data_hash{$var}{$sample}{ft}\n" if $sample eq "HGDP00715";
                 $genoFreq{ $sortedGeno[0] }{new}++;
                 $sumGenoFreq++;
             }
@@ -865,7 +849,6 @@ sub refineData {
                 my ( $m_cFlag, $m_cPos, $m_clipside, $m_clipsize, $m_seqLen, $m_matchLen, $m_seq ) = getMateInfo( $qname, $rname, $pnext, $$sample_hash{$sample}{read_groups}, $$sample_hash{$sample}{filename} );
 
                 if ( $cFlag == 1 && ( abs( $cPos - $$infile_hash{$var}{leftBkpt} ) <= $opts{min_clipped_seq} || abs( $cPos - $$infile_hash{$var}{rightBkpt} ) <= $opts{min_clipped_seq} ) ) {
-                    warn "A\t$qname\n" if $sample eq "HGDP00715";
 
                     $$data_hash{$var}{$sample}{numAltSR}++;
                     push @{ $$data_hash{$var}{$sample}{qualAltSR} }, $mapE;
@@ -874,7 +857,6 @@ sub refineData {
 
                     #non-clipped reads with slight overlap with breakpoint may have mismatches instead of clipping, so skip
                     #also require at least 95% of read be 'matched' to reference, as the presence of insertion can cause some wacky mappings
-                    warn "B\t$qname\n" if $sample eq "HGDP00715";
                     $$data_hash{$var}{$sample}{numRefSR}++;
                     push @{ $$data_hash{$var}{$sample}{qualRefSR} }, $mapE;
                 }
@@ -886,14 +868,14 @@ sub refineData {
                 }
                 elsif ( $dir == 0 && $dnext == 1 && $rnext eq "=" && !$found{$qname} ) {
                     $found{$qname} = 1;
-                    if ( abs($tlen) > $$sample_hash{$sample}{median_insert_size} + 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; warn "1\t$qname\n" if $sample eq "HGDP00715"; }    #insert length of potential reference supporting allele out of upper bounds
-                    if ( abs($tlen) < $$sample_hash{$sample}{median_insert_size} - 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; warn "2\t$qname\n" if $sample eq "HGDP00715"; }    #insert length of potential reference supporting allele out of lower bounds
+                    if ( abs($tlen) > $$sample_hash{$sample}{median_insert_size} + 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; }    #insert length of potential reference supporting allele out of upper bounds
+                    if ( abs($tlen) < $$sample_hash{$sample}{median_insert_size} - 3 * $$sample_hash{$sample}{median_absolute_deviation} ) { next; }    #insert length of potential reference supporting allele out of lower bounds
 
                     #allow some flexibility for clipped positions around breakpoint due to alignment artifacts (later may want to inplement a realignment step)
-                    if    ( $cPos > -1   && abs( $cPos - $l_end ) <= $opts{min_clipped_seq}     && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "3\t$qname\n" if $sample eq "HGDP00715"; }
-                    elsif ( $m_cPos > -1 && abs( $m_cPos - $l_end ) <= $opts{min_clipped_seq}   && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "5\t$qname\n" if $sample eq "HGDP00715"; }
-                    elsif ( $cPos > -1   && abs( $cPos - $r_start ) <= $opts{min_clipped_seq}   && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "7\t$qname\n" if $sample eq "HGDP00715"; }
-                    elsif ( $m_cPos > -1 && abs( $m_cPos - $r_start ) <= $opts{min_clipped_seq} && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; warn "9\t$qname\n" if $sample eq "HGDP00715"; }
+                    if    ( $cPos > -1   && abs( $cPos - $l_end ) <= $opts{min_clipped_seq}     && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
+                    elsif ( $m_cPos > -1 && abs( $m_cPos - $l_end ) <= $opts{min_clipped_seq}   && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
+                    elsif ( $cPos > -1   && abs( $cPos - $r_start ) <= $opts{min_clipped_seq}   && $cFlag == 1 )   { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
+                    elsif ( $m_cPos > -1 && abs( $m_cPos - $r_start ) <= $opts{min_clipped_seq} && $m_cFlag == 1 ) { $$data_hash{$var}{$sample}{numAltRP}++; push @{ $$data_hash{$var}{$sample}{qualAltRP} }, $mapE; }
                     elsif ( ( $pos <= $l_end && $pnext + $m_seqLen >= $l_end ) || ( $pos <= $r_start && $pnext + $m_seqLen >= $r_start ) ) {
 
                         #non-clipped reads with slight overlap with breakpoint may have mismatches instead of clipping
@@ -908,7 +890,6 @@ sub refineData {
                             && $matchLen >= 0.95 * length($seq)
                             && $m_matchLen >= 0.95 * length($m_seq) )
                         {
-                            warn "11\t$qname\n" if $sample eq "HGDP00715";
                             $data_hash{$var}{$sample}{numRefRP}++;
                             push @{ $$data_hash{$var}{$sample}{qualRefRP} }, $mapE;
                         }
@@ -1175,12 +1156,13 @@ sub usage {
     printf( "%-9s %-35s %s\n", "",         "--info_filename=[filename]",      "Input file wth per-sample information (required)" );
     printf( "%-9s %-35s %s\n", "",         "--output_filename=[filename]",    "Output file (default stdout)" );
     printf( "%-9s %-35s %s\n", "",         "--mask_filename=[filename]",      "Mask file for reference numts in BED format (optional)" );
+    printf( "%-9s %-35s %s\n", "",         "--reference=[filename]",          "Reference file");
     printf( "%-9s %-35s %s\n", "",         "--include_mask",                  "Include aberrant reads mapped to mask regions in clustering" );
     printf( "%-9s %-35s %s\n", "",         "--breakpoint",                    "Include soft clipped reads in likelihood calculation" );
     printf( "%-9s %-35s %s\n", "",         "--len_cluster_include=[integer]", "Maximum distance to be included in cluster (default 600)" );
     printf( "%-9s %-35s %s\n", "",         "--len_cluster_link=[integer]",    "Maximum distance to link clusters (default 800)" );
     printf( "%-9s %-35s %s\n", "",         "--min_reads_cluster=[integer]",   "Minimum number of reads to link a cluster (default 1)" );
-    printf( "%-9s %-35s %s\n", "",         "--min_evidence=[integer]",        "Minimum evidence to consider an insertion event for genotyping (default 2)" );
+    printf( "%-9s %-35s %s\n", "",         "--min_evidence=[integer]",        "Minimum evidence to consider an insertion event for genotyping (default 3)" );
     printf( "%-9s %-35s %s\n", "",         "--min_map_qual=[integer]",        "Minimum mapping quality for read consideration (default 10)" );
     printf( "%-9s %-35s %s\n", "",         "--max_read_cov=[integer]",        "Maximum read coverage allowed for breakpoint searching (default 200)" );
     printf( "%-9s %-35s %s\n", "",         "--min_clipped_seq=[integer]",     "Minimum clipped sequence required to consider as putative breakpoint (default 5)" );
