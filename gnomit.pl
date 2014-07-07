@@ -75,18 +75,18 @@ $opts{min_clipped_seq}     = 5;
 $opts{clipped_flank}       = 50;
 $opts{max_num_clipped}     = 5;
 $opts{include_mask}        = 0;
-$opts{min_evidence}        = 2;
+$opts{min_evidence}        = 3;
 $opts{min_map_qual}        = 10;
 $opts{filter_qual}         = 13;
 $opts{filter_depth}        = 5;
 $opts{max_read_cov}        = 200;
 $opts{use_priors}          = 0;
-$opts{mask_filename}       = "numtS.bed";
-$opts{info_filename}       = "sampleInfo.txt";
-$opts{reference}           = "hs37d5.fa";
-$opts{mt_filename}         = "MT.fa";
-$opts{samtools}            = "samtools";
-$opts{exonerate}           = "exonerate";
+$opts{mask_filename}       = "/home2/remills/projects/numts/numtS.bed";
+$opts{info_filename}       = "/scratch/remills_flux/remills/sampleInfo.txt";
+$opts{reference}           = "/nfs/remills-scratch/reference/hs37d5/hs37d5.fa";
+$opts{mt_filename}         = "/nfs/remills-scratch/reference/GRCh37/Sequence/Chromosomes/MT.fa";
+$opts{samtools}            = "/home2/remills/bin/samtools";
+$opts{exonerate}           = "/home2/remills/apps/exonerate-2.2.0/bin/exonerate";
 $opts{dir_tmp}             = "/tmp";
 $opts{prefix}              = "numt";
 $opts{len_mt}              = 16596;                                                                #eventually should be read in by BAM header
@@ -122,7 +122,7 @@ my $optResult = GetOptions(
     "verbose"               => \$opts{verbose}
 );
 
-checkOptions( $optResult, \%opts, $version );
+#checkOptions( $optResult, \%opts, $version );
 
 my $seq_num  = 0;
 my %seq_hash = ();
@@ -278,6 +278,8 @@ sub scoreData {
                 if ($$data_hash{$var}{$sample}{numAltRP} + $$data_hash{$var}{$sample}{numAltSR} < $opts{min_evidence}) {
                     $$data_hash{$var}{$sample}{numAltRP} = 0;
                     $$data_hash{$var}{$sample}{numAltSR} = 0;
+                    $$data_hash{$var}{$sample}{qualAltRP} = ();
+                    $$data_hash{$var}{$sample}{qualAltSR} = ();
                 }
                 my $numRefRP = $$data_hash{$var}{$sample}{numRefRP};
                 my $numAltRP = $$data_hash{$var}{$sample}{numAltRP};
@@ -299,20 +301,18 @@ sub scoreData {
                 foreach my $g ( 0 .. $opts{ploidy} ) {
                     my $geno = $opts{ploidy} - $g;    #need to reverse as calculation is reference allele based
                     if ( $numAltRP + $numRefRP > 0 &&  1 / $opts{ploidy} ** ($numAltRP + $numRefRP) > 0) {
-                        print "RP\t$opts{ploidy}, $g, $numAltRP + $numRefRP, $numRefRP, $$data_hash{$var}{$sample}{avgQ}\n" if $sample eq "HGDP00715";
                         $$data_hash{$var}{$sample}{gl0}{$geno} += calcGl( $opts{ploidy}, $g, $numAltRP + $numRefRP, $numRefRP, $$data_hash{$var}{$sample}{qualRefRP}, $$data_hash{$var}{$sample}{qualAltRP} );
                     }
                     if ( $numAltSR + $numRefSR > 0 && $opts{breakpoint} &&  1 / $opts{ploidy} ** ($numAltSR + $numRefSR) > 0) {
-                        print "SR\t$opts{ploidy}, $g, $numAltSR + $numRefSR, $numRefSR, $$data_hash{$var}{$sample}{avgQ}\n" if $sample eq "HGDP00715";
                         $$data_hash{$var}{$sample}{gl0}{$geno} += calcGl( $opts{ploidy}, $g, $numAltSR + $numRefSR, $numRefSR, $$data_hash{$var}{$sample}{qualRefSR}, $$data_hash{$var}{$sample}{qualAltSR} );
                     }
-                    warn "raw gl0 ($geno): $$data_hash{$var}{$sample}{gl0}{$geno}\n" if $sample eq "HGDP00715";
                     print "\tgl0 returned from calcGL() for geno $geno: $$data_hash{$var}{$sample}{gl0}{$geno}\n" if $opts{verbose};
                     if ( $$data_hash{$var}{$sample}{gl0}{$geno} < -255 ) { $$data_hash{$var}{$sample}{gl0}{$geno} = -255; }    #capped
                     $$data_hash{$var}{$sample}{gl}{$geno} = log10( $priors{$geno} ) + $$data_hash{$var}{$sample}{gl0}{$geno};  #adjust with population inferred prior
                 }
 
                 my @sortedGeno = sort { $$data_hash{$var}{$sample}{gl}{$b} <=> $$data_hash{$var}{$sample}{gl}{$a} } keys %{ $$data_hash{$var}{$sample}{gl} };
+
                 #calculate PL from GL
                 foreach my $geno ( 0 .. $opts{ploidy} ) {
                     print "\tcalculating pl from geno ($$data_hash{$var}{$sample}{gl}{$geno})\n" if $opts{verbose};
@@ -409,8 +409,94 @@ sub report {
 ##INFO=<ID=SAMPLES,Number=.,Type=String,Description="Sample(s) in which site was originally discovered">
 ##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##contig=<ID=1,length=249250621,assembly=b37>
+##contig=<ID=2,length=243199373,assembly=b37>
+##contig=<ID=3,length=198022430,assembly=b37>
+##contig=<ID=4,length=191154276,assembly=b37>
+##contig=<ID=5,length=180915260,assembly=b37>
+##contig=<ID=6,length=171115067,assembly=b37>
+##contig=<ID=7,length=159138663,assembly=b37>
+##contig=<ID=8,length=146364022,assembly=b37>
+##contig=<ID=9,length=141213431,assembly=b37>
+##contig=<ID=10,length=135534747,assembly=b37>
+##contig=<ID=11,length=135006516,assembly=b37>
+##contig=<ID=12,length=133851895,assembly=b37>
+##contig=<ID=13,length=115169878,assembly=b37>
+##contig=<ID=14,length=107349540,assembly=b37>
+##contig=<ID=15,length=102531392,assembly=b37>
+##contig=<ID=16,length=90354753,assembly=b37>
+##contig=<ID=17,length=81195210,assembly=b37>
+##contig=<ID=18,length=78077248,assembly=b37>
+##contig=<ID=19,length=59128983,assembly=b37>
+##contig=<ID=20,length=63025520,assembly=b37>
+##contig=<ID=21,length=48129895,assembly=b37>
+##contig=<ID=22,length=51304566,assembly=b37>
+##contig=<ID=X,length=155270560,assembly=b37>
+##contig=<ID=Y,length=59373566,assembly=b37>
+##contig=<ID=MT,length=16569,assembly=b37>
+##contig=<ID=GL000207.1,length=4262,assembly=b37>
+##contig=<ID=GL000226.1,length=15008,assembly=b37>
+##contig=<ID=GL000229.1,length=19913,assembly=b37>
+##contig=<ID=GL000231.1,length=27386,assembly=b37>
+##contig=<ID=GL000210.1,length=27682,assembly=b37>
+##contig=<ID=GL000239.1,length=33824,assembly=b37>
+##contig=<ID=GL000235.1,length=34474,assembly=b37>
+##contig=<ID=GL000201.1,length=36148,assembly=b37>
+##contig=<ID=GL000247.1,length=36422,assembly=b37>
+##contig=<ID=GL000245.1,length=36651,assembly=b37>
+##contig=<ID=GL000197.1,length=37175,assembly=b37>
+##contig=<ID=GL000203.1,length=37498,assembly=b37>
+##contig=<ID=GL000246.1,length=38154,assembly=b37>
+##contig=<ID=GL000249.1,length=38502,assembly=b37>
+##contig=<ID=GL000196.1,length=38914,assembly=b37>
+##contig=<ID=GL000248.1,length=39786,assembly=b37>
+##contig=<ID=GL000244.1,length=39929,assembly=b37>
+##contig=<ID=GL000238.1,length=39939,assembly=b37>
+##contig=<ID=GL000202.1,length=40103,assembly=b37>
+##contig=<ID=GL000234.1,length=40531,assembly=b37>
+##contig=<ID=GL000232.1,length=40652,assembly=b37>
+##contig=<ID=GL000206.1,length=41001,assembly=b37>
+##contig=<ID=GL000240.1,length=41933,assembly=b37>
+##contig=<ID=GL000236.1,length=41934,assembly=b37>
+##contig=<ID=GL000241.1,length=42152,assembly=b37>
+##contig=<ID=GL000243.1,length=43341,assembly=b37>
+##contig=<ID=GL000242.1,length=43523,assembly=b37>
+##contig=<ID=GL000230.1,length=43691,assembly=b37>
+##contig=<ID=GL000237.1,length=45867,assembly=b37>
+##contig=<ID=GL000233.1,length=45941,assembly=b37>
+##contig=<ID=GL000204.1,length=81310,assembly=b37>
+##contig=<ID=GL000198.1,length=90085,assembly=b37>
+##contig=<ID=GL000208.1,length=92689,assembly=b37>
+##contig=<ID=GL000191.1,length=106433,assembly=b37>
+##contig=<ID=GL000227.1,length=128374,assembly=b37>
+##contig=<ID=GL000228.1,length=129120,assembly=b37>
+##contig=<ID=GL000214.1,length=137718,assembly=b37>
+##contig=<ID=GL000221.1,length=155397,assembly=b37>
+##contig=<ID=GL000209.1,length=159169,assembly=b37>
+##contig=<ID=GL000218.1,length=161147,assembly=b37>
+##contig=<ID=GL000220.1,length=161802,assembly=b37>
+##contig=<ID=GL000213.1,length=164239,assembly=b37>
+##contig=<ID=GL000211.1,length=166566,assembly=b37>
+##contig=<ID=GL000199.1,length=169874,assembly=b37>
+##contig=<ID=GL000217.1,length=172149,assembly=b37>
+##contig=<ID=GL000216.1,length=172294,assembly=b37>
+##contig=<ID=GL000215.1,length=172545,assembly=b37>
+##contig=<ID=GL000205.1,length=174588,assembly=b37>
+##contig=<ID=GL000219.1,length=179198,assembly=b37>
+##contig=<ID=GL000224.1,length=179693,assembly=b37>
+##contig=<ID=GL000223.1,length=180455,assembly=b37>
+##contig=<ID=GL000195.1,length=182896,assembly=b37>
+##contig=<ID=GL000212.1,length=186858,assembly=b37>
+##contig=<ID=GL000222.1,length=186861,assembly=b37>
+##contig=<ID=GL000200.1,length=187035,assembly=b37>
+##contig=<ID=GL000193.1,length=189789,assembly=b37>
+##contig=<ID=GL000194.1,length=191469,assembly=b37>
+##contig=<ID=GL000225.1,length=211173,assembly=b37>
+##contig=<ID=GL000192.1,length=547496,assembly=b37>
+##contig=<ID=NC_007605,length=171823,assembly=b37>
+##contig=<ID=hs37d5,length=35477943,assembly=b37>
 ##fileDate=$filedate
-##reference=$opts{reference}
+##reference=hs37d5
 ##source=gnomit-$version
 HEADER
 
@@ -763,6 +849,7 @@ sub refineData {
                 my ( $m_cFlag, $m_cPos, $m_clipside, $m_clipsize, $m_seqLen, $m_matchLen, $m_seq ) = getMateInfo( $qname, $rname, $pnext, $$sample_hash{$sample}{read_groups}, $$sample_hash{$sample}{filename} );
 
                 if ( $cFlag == 1 && ( abs( $cPos - $$infile_hash{$var}{leftBkpt} ) <= $opts{min_clipped_seq} || abs( $cPos - $$infile_hash{$var}{rightBkpt} ) <= $opts{min_clipped_seq} ) ) {
+
                     $$data_hash{$var}{$sample}{numAltSR}++;
                     push @{ $$data_hash{$var}{$sample}{qualAltSR} }, $mapE;
                 }
@@ -1069,13 +1156,13 @@ sub usage {
     printf( "%-9s %-35s %s\n", "",         "--info_filename=[filename]",      "Input file wth per-sample information (required)" );
     printf( "%-9s %-35s %s\n", "",         "--output_filename=[filename]",    "Output file (default stdout)" );
     printf( "%-9s %-35s %s\n", "",         "--mask_filename=[filename]",      "Mask file for reference numts in BED format (optional)" );
-    printf( "%-9s %-35s %s\n", "",         "--reference=[filename]",          "Reference sequence, indexed with samtools faidx (required)" ) ;
+    printf( "%-9s %-35s %s\n", "",         "--reference=[filename]",          "Reference file");
     printf( "%-9s %-35s %s\n", "",         "--include_mask",                  "Include aberrant reads mapped to mask regions in clustering" );
     printf( "%-9s %-35s %s\n", "",         "--breakpoint",                    "Include soft clipped reads in likelihood calculation" );
     printf( "%-9s %-35s %s\n", "",         "--len_cluster_include=[integer]", "Maximum distance to be included in cluster (default 600)" );
     printf( "%-9s %-35s %s\n", "",         "--len_cluster_link=[integer]",    "Maximum distance to link clusters (default 800)" );
     printf( "%-9s %-35s %s\n", "",         "--min_reads_cluster=[integer]",   "Minimum number of reads to link a cluster (default 1)" );
-    printf( "%-9s %-35s %s\n", "",         "--min_evidence=[integer]",        "Minimum evidence to consider an insertion event for genotyping (default 2)" );
+    printf( "%-9s %-35s %s\n", "",         "--min_evidence=[integer]",        "Minimum evidence to consider an insertion event for genotyping (default 3)" );
     printf( "%-9s %-35s %s\n", "",         "--min_map_qual=[integer]",        "Minimum mapping quality for read consideration (default 10)" );
     printf( "%-9s %-35s %s\n", "",         "--max_read_cov=[integer]",        "Maximum read coverage allowed for breakpoint searching (default 200)" );
     printf( "%-9s %-35s %s\n", "",         "--min_clipped_seq=[integer]",     "Minimum clipped sequence required to consider as putative breakpoint (default 5)" );
