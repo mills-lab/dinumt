@@ -2,8 +2,21 @@
 
 use strict;
 use warnings;
+use Getopt::Long;
 
 my %data = ();
+my %opts = ();
+my $version = 0.0.23;
+
+$opts{reference}           = "hs37d5.fa";
+$opts{samtools}            = "samtools";
+
+my $optResult = GetOptions(
+    "reference=s" => \$opts{reference},
+    "samtools=s" => \$opts{samtools}
+);
+
+checkOptions( $optResult, \%opts, $version );
 
 my $lastChr = "";
 my $lastPos = 0;
@@ -104,8 +117,7 @@ for (my $i=0; $i<=$c; $i++) {
     my $ciDelta = $end - $pos + 1;
     my $alt     = "<INS:MT>";
 
-    #my $refline = `samtools faidx /mnt/Mills/reference/GRCh37/Sequence/WholeGenomeFasta/genome.fa $chr:$pos-$pos`;
-    my $refline = `samtools faidx /mnt/Mills/1000genomes/ftp/technical/reference/phase2_reference_assembly_sequence/hs37d5.fa $chr:$pos-$pos`;
+    my $refline = `samtools faidx $opts{reference} $chr:$pos-$pos`;
     my $ref = ( split( /\n/, $refline ) )[1];
     if ( !defined($ref) ) { $ref = "N"; }
 
@@ -134,4 +146,33 @@ for (my $i=0; $i<=$c; $i++) {
     }
     
     print "$chr\t$pos\t$id\t$ref\t$alt\t$qual\t$filter\t$info\n";
+}
+
+sub checkOptions {
+    my $optResult = shift;
+    my $opts      = shift;
+    my $version   = shift;
+
+    if ( !$optResult || $$opts{help} ) {
+        usage($version);
+        exit;
+    }
+    if (-t STDIN and not @ARGV) {
+        print "\n***ERROR***\tNo files passed as arguments\n";
+        usage($version);
+        exit;
+    }
+}
+
+sub usage {
+    my $version = shift;
+    printf("\n");
+    printf( "%-9s %s\n", "Program:", "clusterNumtsVcf.pl" );
+    printf( "%-9s %s\n", "Version:", "$version" );
+    printf("\n");
+    printf( "%-9s %s\n", "Usage:", "clusterNumtsVcf.pl [options] " );
+    printf("\n");
+    printf( "%-9s %-35s %s\n", "Options:", "--samtools=[filename]",     "Path to samtools" );
+    printf( "%-9s %-35s %s\n", "",         "--reference=[filename]",          "Reference sequence, indexed with samtools faidx (required)" ) ;
+    printf("\n");
 }
