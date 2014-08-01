@@ -4,9 +4,12 @@ use warnings;
 use strict;
 use Getopt::Long;
 
-my $version = "0.0.22";
+my $version = "0.0.23";
 
 #version update
+# 0.0.23
+#   -fixed oversight on mask overlap to consider all possible overlaps of reference numt
+#
 # 0.0.22
 #   -changed name to "dinumt" (dynumite!)
 #   -added option --mt_names for discrete MT identifiers
@@ -450,6 +453,7 @@ sub getInput {
         }
         close mask1;
     }
+
     foreach my $input_line (@input_lines) {
         print "command: $input_line\n" if $opts{verbose};
         open( fname1, $input_line ) || die "error in opening file, $!\n";
@@ -457,6 +461,7 @@ sub getInput {
             $seq_num = $i;
             chomp($line1);
             my ( $qname, $flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen, $seq, $qual ) = split( /\t/, $line1 );
+            my $pnextend = $pnext + length($seq); #use first read length as proxy for paired read length
 
             my ($read_group) = $line1 =~ /RG:Z:(\S+)/;
 
@@ -486,7 +491,15 @@ sub getInput {
             if ( $opts{include_mask} ) {
                 foreach my $maskStart ( keys %{ $$mask_hash{$rnext} } ) {
                     my $maskEnd = $$mask_hash{$rnext}{$maskStart};
-                    if ( $pnext > $maskStart && $pnext <= $maskEnd ) {
+                    if ( $pnext >= $maskStart && $pnext <= $maskEnd ) {
+                        $isMaskOverlap = 1;
+                        last;
+                    }
+                    elsif ($pnextend >= $maskStart && $pnextend <= $maskEnd) {
+                        $isMaskOverlap = 1;
+                        last;
+                    }
+                    elsif ($pnext <= $maskStart && $pnextend >= $maskEnd) {
                         $isMaskOverlap = 1;
                         last;
                     }
