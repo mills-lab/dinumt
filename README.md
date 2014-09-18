@@ -44,6 +44,7 @@ An example workflow would be as follows:
 dinumt.pl \
 --mask_filename=refNumts.bed \
 --input_filename=sample1.bam \
+--reference=hs37d5.fa \
 --min_reads_cluster=1 \
 --include_mask \
 --output_filename=sample1.vcf \
