@@ -85,7 +85,6 @@ $opts{min_evidence}        = 4;
 $opts{min_map_qual}        = 10;
 $opts{max_read_cov}        = 200;
 $opts{mask_filename}       = "numtS.bed";
-$opts{reference}           = "genome.fa";
 $opts{samtools}            = "samtools";
 $opts{prefix}              = "numt";
 $opts{len_mt}              = 16569;                                                               #eventually should be read in by BAM header
@@ -1172,6 +1171,11 @@ sub checkOptions {
     }
     if ( defined( $$opts{mask_filename} ) && !-e ( $$opts{mask_filename} ) ) {
         print "\n***ERROR***\t--mask_filename does not exist\n";
+        usage($version);
+        exit;
+    }
+    if ( !defined( $$opts{reference} ) ) {
+        print "\n***ERROR***\t--reference is required\n";
         usage($version);
         exit;
     }
