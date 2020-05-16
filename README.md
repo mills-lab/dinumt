@@ -23,6 +23,7 @@ In addition, you will need:
 * bed file of annotated numts in reference (refNumts.bed for hg19 is included in package)
 
 The genotyping step requires the use of a sample index file containing various sample-level information (mean insert size, coverage, etc). A template has been provided, and the relevant data can be obtained by using GATK (DepthOfCoverage walker) and Picard (CollectInsertSizeMetrics) or custom scripts.
+If you are running dinumt in cram files under reference genome version GRCh38, please use the corresponding .pl in the folder.
 
 Parameters
 ----------
