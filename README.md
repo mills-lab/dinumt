@@ -23,6 +23,7 @@ In addition, you will need:
 * bed file of annotated numts in reference (refNumts.bed for hg19 is included in package)
 
 The genotyping step requires the use of a sample index file containing various sample-level information (mean insert size, coverage, etc). A template has been provided, and the relevant data can be obtained by using GATK (DepthOfCoverage walker) and Picard (CollectInsertSizeMetrics) or custom scripts.
+If you are running dinumt in cram files under reference genome version GRCh38, please use the corresponding .pl in the folder.
 
 Parameters
 ----------
@@ -79,6 +80,14 @@ gnomit.pl \
 --exonerate=exonerate \
 --mt_filename=MT.fa
 ~~~
+
+## Citation
+* Dayama, Gargi, Weichen Zhou, Javier Prado-Martinez, Tomas Marques-Bonet, and Ryan E. Mills. 2020. [Characterization of Nuclear Mitochondrial Insertions in the Whole Genomes of Primates](https://academic.oup.com/nargab/article/2/4/lqaa089/5983420),
+NAR Genomics and Bioinformatics, 2020, lqaa089,. `https://doi.org/10.1093/nargab/lqaa089`
+
+* Dayama, Gargi, Sarah B Emery, Jeffrey M Kidd, and Ryan E. Mills. 2014. [The genomic landscape of polymorphic human nuclear mitochondrial insertions](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4227756/pdf/gku1038.pdf),
+Nucleic Acids Research, 2014, gku1038, `https://doi.org/10.1093/nar/gku1038`
+
 
 Contact
 -------
