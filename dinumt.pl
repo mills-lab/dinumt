@@ -305,7 +305,9 @@ HEADER
             next;
         }
         my $chrom = $$outfile_hash{$group}{chr};
-        $chrom =~ s/chr//g;
+        unless ( $opts{ucsc} || $opts{ensembl} ) {  
+            $chrom =~ s/chr//g;
+        }
         my $id      = $opts{prefix} . "_$index";
         my $alt     = "<INS:MT>";
         my $qual    = $$outfile_hash{$group}{gq};
